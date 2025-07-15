@@ -75,8 +75,7 @@ npm run test:cov
 
 - [NestJS Docs](https://docs.nestjs.com) — backend framework documentation  
 - [Next.js Docs](https://nextjs.org/docs) — frontend rendering framework  
-- [NestJS + Express adapter](https://docs.nestjs.com/faq/nest-application-context#use-express-with-nest) — for server integration  
-- [Official Discord](https://discord.gg/G7Qnnhy) — community and help  
+- [NestJS + Express adapter](https://docs.nestjs.com/faq/nest-application-context#use-express-with-nest) — for server integration   
 - [Devtools](https://devtools.nestjs.com) — visualize module graph for debugging  
 
 ---
