@@ -8,7 +8,7 @@
   </a>
 </p>
 
-```markdown
+
 ## Description
 
 This project is a **unified fullstack application** that serves a **Next.js frontend** directly from a **NestJS backend** using Express. It simplifies deployment and development by eliminating CORS issues and serving everything through a single port.
