@@ -15,8 +15,32 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   email     String   @unique
   name      String?
   createdAt DateTime @default(now())
+
+  merchant     Merchant?     @relation("UserMerchant")
+  transactions Transaction[] @relation("UserTransactions")
+}
+
+model Merchant {
+  id           String   @id @default(uuid())
+  businessName String
+  userId       String   @unique
+  user         User     @relation("UserMerchant", fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+
+  transactions Transaction[] @relation("MerchantTransactions")
+}
+
+model Transaction {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  amount     Float
+  createdAt  DateTime @default(now())
+
+  sender   User     @relation("UserTransactions", fields: [senderId], references: [id])
+  receiver Merchant @relation("MerchantTransactions", fields: [receiverId], references: [id])
 }
