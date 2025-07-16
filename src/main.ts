@@ -1,15 +1,31 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { join } from 'path';
+import { join, resolve } from 'path';
+import { existsSync } from 'fs';
 const express = require('express');
 const next = require('next');
 import { ExpressAdapter } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const server = express();
-
   const dev = process.env.NODE_ENV !== 'production';
-  const nextApp = next({ dev, dir: join(__dirname, '..', 'frontend') });
+
+  const possiblePaths = [
+    resolve(__dirname, '..', 'frontend'),
+    resolve(__dirname, '..', '..', 'frontend'),
+  ];
+
+  const frontendDir = possiblePaths.find(p =>
+    existsSync(join(p, 'pages')) ||
+    existsSync(join(p, 'app')) ||
+    existsSync(join(p, 'src', 'app'))
+  );
+
+  if (!frontendDir) {
+    throw new Error("❌ Couldn't find a valid `pages`, `app`, or `src/app` directory inside any frontend folder.");
+  }
+
+  const nextApp = next({ dev, dir: frontendDir });
   const handle = nextApp.getRequestHandler();
 
   await nextApp.prepare();

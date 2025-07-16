@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "queries": "ts-node queries/queries.ts",
-    "build": "nest build",
+    "build": "nest build && cd frontend && npm run build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
