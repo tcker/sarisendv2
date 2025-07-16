@@ -4,6 +4,11 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// TO RUN WITH NEW SCHEMAS
+// npx prisma format
+// npx prisma generate
+// npx prisma migrate dev --name <name-of-your-new-schema-comment>
+
 generator client {
   provider = "prisma-client-js"
   // output   = "../generated/prisma"
@@ -14,33 +19,79 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// The `User` model represents a customer or sender in QR payment app (SariSend).
+/// Each user logs in using a **unique crypto wallet address**.
+/// Users can initiate multiple transactions to different merchants.
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
+  /// Primary key for the user. Auto-generated UUID.
+  id String @id @default(uuid())
+
+  /// The crypto wallet address used for logging in.
+  /// This must be unique across all users.
+  wallet String? @unique
+
+  /// Optional display name for the user.
+  name String?
+
+  /// Timestamp when the user account was created.
   createdAt DateTime @default(now())
 
-  merchant     Merchant?     @relation("UserMerchant")
+  /// One-to-many relation: A user can have multiple transactions.
+  /// This represents all the transactions **sent by** the user.
   transactions Transaction[] @relation("UserTransactions")
 }
 
+/// The `Merchant` model represents a business receiving payments.
+/// Each merchant also logs in using a **unique crypto wallet address**.
+/// Merchants have a business name and can receive many transactions.
 model Merchant {
-  id           String   @id @default(uuid())
-  businessName String
-  userId       String   @unique
-  user         User     @relation("UserMerchant", fields: [userId], references: [id])
-  createdAt    DateTime @default(now())
+  /// Primary key for the merchant. Auto-generated UUID.
+  id String @id @default(uuid())
 
+  /// The crypto wallet address used for logging in.
+  /// This must be unique across all merchants.
+  wallet String? @unique
+
+  /// Name of the business. Displayed to customers after scanning QR.
+  businessName String
+
+  /// Timestamp when the merchant was registered or created.
+  createdAt DateTime @default(now())
+
+  /// One-to-many relation: A merchant can receive many transactions.
+  /// This represents all the transactions **received by** the merchant.
   transactions Transaction[] @relation("MerchantTransactions")
 }
 
+/// The `Transaction` model records the actual payment activity between
+/// a user (sender) and a merchant (receiver).
 model Transaction {
-  id         String   @id @default(uuid())
-  senderId   String
-  receiverId String
-  amount     Float
-  createdAt  DateTime @default(now())
+  /// Primary key for the transaction. Auto-generated UUID.
+  id String @id @default(uuid())
 
-  sender   User     @relation("UserTransactions", fields: [senderId], references: [id])
-  receiver Merchant @relation("MerchantTransactions", fields: [receiverId], references: [id])
+  /// Foreign key referencing the `User.id` (sender of the payment).
+  userId String
+
+  /// Foreign key referencing the `Merchant.id` (receiver of the payment).
+  merchantId String
+
+  /// Amount of crypto transferred (in APT or other token).
+  amount Float
+
+  /// Timestamp when the transaction occurred.
+  createdAt DateTime @default(now())
+
+  /// Many-to-one relation from transaction to user.
+  /// Represents the **sender** of the payment.
+  user User @relation("UserTransactions", fields: [userId], references: [id])
+
+  /// Many-to-one relation from transaction to merchant.
+  /// Represents the **receiver** of the payment.
+  merchant Merchant @relation("MerchantTransactions", fields: [merchantId], references: [id])
 }
+
+// 🔍 Summary of the Relationships
+
+//    A User can send many Transactions → User.transactions
+//    A Merchant can receive many Transactions → Merchant.transactions
+//    Each Transaction belongs to one User and one Merchant
