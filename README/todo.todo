@@ -1,0 +1,13 @@
+☐ My Tasks
+    ✔ Change architecture, separated frontend from backend @done(07-18-25 16:09)
+    ☐ Add Cross Origin between frontend (next.js) and backend (nestjs)
+    ☐ Local Database Prisma Postgresql instead of online
+
+
+☐ Tasks on Schema
+    ☐ token
+    ☐ what kind of product
+    ☐ what kind of currency used
+    ☐ magkano yung currency of fiat 
+    ☐ task flags "successfull status" or "failed"
+
