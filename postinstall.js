@@ -1,5 +1,5 @@
 console.log(`
-🚀 Setup Complete!
+🚀 Setup Complete!!
 
 📦 How to use:
 
