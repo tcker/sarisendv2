@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "install:all": "npm install --prefix backend && npm install --prefix frontend",
-    "start": "concurrently \"npm:start:dev --prefix backend\" \"npm:dev --prefix frontend\"",
-    "test": "concurrently \"npm:test --prefix backend\" \"npm:lint --prefix frontend\"",
+    "start": "concurrently --names \"backend,frontend\" --prefix \"[{name}]\" --prefix-colors \"blue,green\" \"npm:start:dev --prefix backend\" \"npm:dev --prefix frontend\"",
+    "test": "concurrently --names \"backend,frontend\" --prefix \"[{name}]\" --prefix-colors \"magenta,yellow\" \"npm:test --prefix backend\" \"npm:lint --prefix frontend\"",
     "postinstall": "npm run install:all && node postinstall.js",
     "instructions": "node postinstall.js"
   },
