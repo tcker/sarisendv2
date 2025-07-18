@@ -1,84 +1,70 @@
 // TO RUN QUERIES
-//  npm run queries
-import { PrismaClient } from '@prisma/client';
+// npm run queries
+
+import { PrismaClient, TxStatus } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 
 async function main() {
-
-// -----------------------------USER---------------------------------
-
-
-  // (customer/sender)
+  // ----------------------------- USER ---------------------------------
   const user = await prisma.user.create({
     data: {
       name: 'Tcker',
-       // placeholder wallet
       wallet: '0xabc123456789def',
     },
   });
 
-  console.log('User created:', user);
+  console.log('✅ User created:', user);
 
-// -----------------------------MERCHANT---------------------------------
-
-
-  // merchant (receiver)
+  // ----------------------------- MERCHANT ---------------------------------
   const merchant = await prisma.merchant.create({
     data: {
       businessName: 'Tcker Coffee Shop',
-      // Fake Aptos wallet address for merchant
-      wallet: '0xmerchant456789abc', 
+      wallet: '0xmerchant456789abc',
     },
   });
 
-  console.log('Merchant created:', merchant);
+  console.log('✅ Merchant created:', merchant);
 
-// -----------------------------TRANSACTION---------------------------------
-
-
-  // transaction between the user and merchant
+  // ----------------------------- TRANSACTION ---------------------------------
   const transaction = await prisma.transaction.create({
     data: {
+      receiptId: `SARISEND-${Date.now()}`, // simple unique receipt ID
       amount: 50.0,
-      userId: user.id,         // sender (User)
-      merchantId: merchant.id, // receiver (Merchant)
+      token: 'APT',
+      product: 'Iced Coffee',
+      currency: 'PHP',
+      status: TxStatus.SUCCESS,
+      userId: user.id,
+      merchantId: merchant.id,
     },
   });
 
-  console.log('Transaction created:', transaction);
+  console.log('✅ Transaction created:', transaction);
 
-
-// -----------------------------FETCH USER & USER-TRANSACTIONS--------------------
-
-
-  // Fetch all users and their sent transactions
+  // ----------------------------- FETCH USERS WITH TRANSACTIONS ---------------------
   const usersWithTx = await prisma.user.findMany({
     include: {
-      transactions: true, 
+      transactions: true,
     },
   });
 
-  console.log('All users + their transactions:', usersWithTx);
+  console.log('📦 All users + their transactions:', JSON.stringify(usersWithTx, null, 2));
 
-// -----------------------------FETCH MERCHANT & MERCHANT-TRANSACTIONS--------------------
-
-
-  // Fetch all merchants and received transactions
+  // ----------------------------- FETCH MERCHANTS WITH TRANSACTIONS ------------------
   const merchantsWithTx = await prisma.merchant.findMany({
     include: {
-      transactions: true, // all transactions where merchant is the receiver
+      transactions: true,
     },
   });
 
-  console.log('All merchants + received transactions:', merchantsWithTx);
+  console.log('🏪 All merchants + received transactions:', JSON.stringify(merchantsWithTx, null, 2));
 }
-
-
 
 main()
   .catch((e) => {
-    console.error('Error during query run:', e);
+    console.error('❌ Error during query run:', e);
   })
   .finally(async () => {
     await prisma.$disconnect();
