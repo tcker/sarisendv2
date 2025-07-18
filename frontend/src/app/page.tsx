@@ -1,103 +1,215 @@
-import Image from "next/image";
+'use client'
+import React, { useState } from 'react'
+import { ChevronRight, ChevronLeft } from 'lucide-react'
+import Link from 'next/link'
+import logo from '@/assets/logo.png'
+import one from '@/assets/hello1.png'
+import two from '@/assets/hello2.png'
+import three from '@/assets/hello3.png'
 
-export default function Home() {
+
+export default function Welcome() {
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [touchStart, setTouchStart] = useState(0)
+  const [touchEnd, setTouchEnd] = useState(0)
+
+  const slides = [
+    {
+      id: 0,
+      type: 'intro',
+      title: 'SariSend',
+      description: 'Your crypto wallet for everyday life.',
+      image: logo,
+      showContinue: true
+    },
+    {
+      id: 1,
+      type: 'feature',
+      title: 'Welcome to SariSend',
+      subtitle: 'Instant Crypto Payments, One Scan Away',
+      image: one,
+      showDots: true
+    },
+    {
+      id: 2,
+      type: 'feature', 
+      title: "From token to Sari-Sari Store, you're covered",
+      subtitle: "SariSend makes crypto transactions easy and accessible.",
+      image: two,
+      showDots: true
+    },
+    {
+      id: 3,
+      type: 'feature',
+      title: 'Just Scan, Tap, and Enjoy.',
+      subtitle: 'Experience seamless transactions with SariSend.',
+      image: three,
+      showDots: true,
+      isLast:true
+    },
+  ]
+
+  const nextSlide = () => {
+    if (currentSlide < slides.length - 1) {
+      setCurrentSlide(currentSlide + 1)
+    }
+  }
+
+  const prevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1)
+    }
+  }
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index)
+  }
+
+  // Touch/Swipe handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe && currentSlide < slides.length - 1) {
+      nextSlide()
+    }
+    if (isRightSwipe && currentSlide > 0) {
+      prevSlide()
+    }
+  }
+
+  const currentSlideData = slides[currentSlide]
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="min-h-screen bg-black text-white overflow-hidden">
+      <div 
+        className="h-screen flex flex-col"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Slide Content */}
+        <div className="flex-1 flex items-center justify-center px-6 py-8">
+          <div className="max-w-md w-full text-center">
+            
+            {/* Intro Slide (First slide) */}
+            {currentSlideData.type === 'intro' && (
+              <div className="space-y-8">
+                <div className=" flex items-center justify-center mb-6">
+                  <img 
+                    src={currentSlideData.image.src} 
+                    alt="SariSend Logo"
+                  />
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold mb-2">
+                    Sari<span className="text-green-500">Send</span>
+                  </h1>
+                  <p className="text-gray-400 text-sm mb-2">{currentSlideData.subtitle}</p>
+                  <p className="text-white text-lg">{currentSlideData.description}</p>
+                </div>
+              </div>
+            )}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {/* Feature Slides */}
+            {currentSlideData.type === 'feature' && (
+              <section className="space-y-8">
+                <div className="w-80 h-64 mx-auto mb-8 flex items-start justify-items-start">
+                  <img 
+                    src={currentSlideData.image.src} 
+                    alt={`Feature ${currentSlideData.id}`}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
+
+                <div className='text-left'>
+                  <h2 className="text-5xl font-extrabold mb-4 mr-8 leading-tight">
+                    {currentSlideData.title}
+                  </h2>
+                  <p className="text-xl sm:text-2xl text-gray-300">
+                    {currentSlideData.subtitle}
+                  </p>
+                </div>
+              </section>
+            )}
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+
+        {/* Navigation Dots (for feature slides) */}
+        {currentSlideData.showDots && (
+          <div className="flex justify-center space-x-2 mb-8">
+            {slides.slice(1).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index + 1)}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  currentSlide === index + 1 ? 'bg-green-500' : 'bg-gray-600'
+                }`}
+                aria-label={`Go to slide ${index + 2}`}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Bottom Navigation */}
+        <div className="px-6 pb-8">
+          <div className="flex items-center justify-between">
+            {/* Back Button */}
+            <button
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+              className={`p-3 rounded-full transition-all ${
+                currentSlide === 0 
+                  ? 'invisible' 
+                  : 'bg-black/50 hover:bg-gray-900/70 border border-gray-600'
+              }`}
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            {/* Continue/Next Button */}
+            {currentSlideData.isLast ? (
+              <Link
+                href="/signup"
+                className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-4 rounded-full transition-colors shadow-lg flex items-center space-x-2"
+              >
+                <span>Get Started</span>
+                <ChevronRight className="w-5 h-5" />
+              </Link>
+            ) : (
+              <button
+                onClick={nextSlide}
+                className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-4 rounded-full transition-colors shadow-lg flex items-center space-x-2"
+              >
+                <span>{currentSlideData.showContinue ? 'Continue' : 'Next'}</span>
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Skip Button (top right) */}
+        {currentSlide > 0 && !currentSlideData.isLast && (
+          <Link
+            href="/signup"
+            className="absolute top-8 right-6 text-gray-400 hover:text-white transition-colors"
+          >
+            Skip
+          </Link>
+        )}
+      </div>
+    </main>
+  )
 }
