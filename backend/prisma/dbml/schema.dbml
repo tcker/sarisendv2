@@ -1,0 +1,43 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table User {
+  id String [pk]
+  wallet String [unique]
+  name String
+  createdAt DateTime [default: `now()`, not null]
+  transactions Transaction [not null]
+}
+
+Table Merchant {
+  id String [pk]
+  wallet String [unique]
+  businessName String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  transactions Transaction [not null]
+}
+
+Table Transaction {
+  id String [pk]
+  receiptId String [unique, not null]
+  userId String [not null]
+  merchantId String [not null]
+  amount Float [not null]
+  token String [not null]
+  product String [not null]
+  currency String [not null]
+  status TxStatus [not null]
+  createdAt DateTime [default: `now()`, not null]
+  user User [not null]
+  merchant Merchant [not null]
+}
+
+Enum TxStatus {
+  SUCCESS
+  FAILED
+}
+
+Ref: Transaction.userId > User.id
+
+Ref: Transaction.merchantId > Merchant.id
