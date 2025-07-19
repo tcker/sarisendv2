@@ -6,7 +6,6 @@ import Image from "next/image";
 import petra from "@/assets/petra.png";
 import google from "@/assets/GoogleIcon.webp";
 
-// Extend Window interface for Petra wallet
 declare global {
   interface Window {
     aptos?: {
@@ -39,9 +38,27 @@ export default function Signup() {
       localStorage.setItem("wallet", walletAddress);
       localStorage.setItem("connectedAt", Date.now().toString());
 
-      setIsConnecting(false);
-      setIsConnected(true);
+      if (!userType) {
+        throw new Error("User type not selected");
+      }
 
+      const response = await fetch("http://localhost:2000/auth/connect-wallet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          wallet: walletAddress,
+          userType
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to register wallet with backend");
+      }
+
+      setIsConnected(true);
+      setIsConnecting(false);
       console.log("Connected to Petra Wallet:", walletAddress);
       router.push("/home");
     } catch (err) {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import UserProfile from "@/components/icon";
 import QrScanner from "@/components/QrScanner";
-import menu from '@/assets/Menu Button.png'
+import menu from '@/assets/Menu Button.png';
 import Ellipsis from "@/assets/Ellipse.png";
 import Token from "@/components/token";
 import Ads from "@/components/ads";
@@ -29,24 +29,12 @@ export default function Home() {
       const diff = now - Number(connectedAt);
       if (diff < 5 * 60 * 1000) {
         setWallet(storedWallet);
-        setTimeout(() => {
-          setWallet("");
-          localStorage.removeItem("wallet");
-          localStorage.removeItem("connectedAt");
-        }, 5 * 60 * 1000 - diff);
       } else {
         localStorage.removeItem("wallet");
         localStorage.removeItem("connectedAt");
       }
     }
   }, []);
-  useEffect(() => {
-    if (wallet && canvasRef.current && mode === "receive") {
-      // QRCode.toCanvas(canvasRef.current, wallet, { width: 340 }, (err: any) => {
-      //   if (err) console.error(err);
-      // });
-    }
-  }, [wallet, mode]);
 
   const disconnectWallet = async () => {
     setWallet("");
@@ -61,25 +49,29 @@ export default function Home() {
       }
     }
 
-    router.push("/"); // Redirect to root after disconnect
+    router.push("/");
   };
 
   const connectWallet = async () => {
     if (!window.aptos) return alert("Petra Wallet not found");
+
+    try {
       const res = await window.aptos.connect();
       setWallet(res.address);
       localStorage.setItem("wallet", res.address);
       localStorage.setItem("connectedAt", Date.now().toString());
+
+      await fetch("http://localhost:2000/auth/connect-wallet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ address: res.address })
+      });
+    } catch (e) {
+      alert("Failed to connect Petra Wallet");
     }
-  //     setTimeout(() => {
-  //       setWallet("");
-  //       localStorage.removeItem("wallet");
-  //       localStorage.removeItem("connectedAt");
-  //     }, 5 * 60 * 1000);
-  //   } catch (e) {
-  //     alert("Failed to connect Petra Wallet");
-  //   }
-  // };
+  };
 
   return (
     <main className="min-h-screen mx-4 p-4 relative overflow-hidden">
@@ -161,10 +153,9 @@ export default function Home() {
           onClose={() => setIsSidebarOpen(false)}
           walletAddress={wallet}
           disconnectWallet={disconnectWallet}
-          isMerchant={false} // Regular user, not merchant
+          isMerchant={false}
         />
       )}
     </main>
   );
 }
-
