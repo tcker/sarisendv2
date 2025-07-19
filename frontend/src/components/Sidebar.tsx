@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useRef } from "react";
 import { X, History, FileText, Info, LogOut } from "lucide-react";
 import Image from "next/image";
-import user from "@/assets/userPfp.jpg";
+import menu from "@/assets/Menu Button.png";
 import { StaticImageData } from "next/image";
 
 interface MenuItem {
@@ -18,7 +18,7 @@ interface SidebarProps {
   onClose: () => void;
   walletAddress?: string;
   disconnectWallet: () => void;
-  profileImage?: StaticImageData;
+  menuIcon?: StaticImageData;
   isMerchant?: boolean;
 }
 
@@ -27,7 +27,7 @@ export default function Sidebar({
   onClose,
   walletAddress = "",
   disconnectWallet,
-  profileImage = user,
+  menuIcon = menu,
   isMerchant = false,
 }: SidebarProps) {
   const router = useRouter();
@@ -72,7 +72,7 @@ export default function Sidebar({
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[9999] bg-black/50 backdrop-blur-md transition-opacity duration-300 ${
         isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       role="dialog"
@@ -87,9 +87,9 @@ export default function Sidebar({
       >
         <header className="flex items-center justify-between p-6 border-b border-gray-700/50">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-700">
+            <div className="w-12 h-12">
               <Image 
-                src={profileImage} 
+                src={menuIcon} 
                 alt="Profile" 
                 width={48} 
                 height={48}
