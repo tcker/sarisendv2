@@ -1,7 +1,6 @@
 'use client'
 import React from 'react'
 import { ArrowLeft, Shield, Users, Zap, Globe } from 'lucide-react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Logo from '@/assets/logo.png'
 import Image from 'next/image'
@@ -9,9 +8,9 @@ import Image from 'next/image'
 export default function About() {
   const router = useRouter()
   const goBack = () => {
-    router.back() // Goes back one page in history
+    router.back() 
   }
-  
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
