@@ -72,7 +72,7 @@ export default function Sidebar({
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[9999] bg-black/50 backdrop-blur-md transition-opacity duration-300 ${
         isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       role="dialog"
