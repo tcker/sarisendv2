@@ -61,13 +61,13 @@ export default function Home() {
       localStorage.setItem("wallet", res.address);
       localStorage.setItem("connectedAt", Date.now().toString());
 
-      await fetch("http://localhost:2000/auth/connect-wallet", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ address: res.address })
-      });
+      // await fetch("http://localhost:2000/auth/connect-wallet", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json"
+      //   },
+      //   body: JSON.stringify({ address: res.address })
+      // });
     } catch (e) {
       alert("Failed to connect Petra Wallet");
     }
