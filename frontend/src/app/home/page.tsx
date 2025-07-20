@@ -22,25 +22,31 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const storedWallet = localStorage.getItem("wallet");
-    const connectedAt = localStorage.getItem("connectedAt");
+    // const storedWallet = localStorage.getItem("wallet");
+    // const connectedAt = localStorage.getItem("connectedAt");
+    const checkconnection = async () => {
+      const wallet = window.aptos;
+      if (!wallet || !wallet.isConnected || !wallet.account) return;
 
-    if (storedWallet && connectedAt) {
-      const now = Date.now();
-      const diff = now - Number(connectedAt);
-      if (diff < 5 * 60 * 1000) {
-        setWallet(storedWallet);
-      } else {
-        localStorage.removeItem("wallet");
-        localStorage.removeItem("connectedAt");
+      try {
+        const connected = await wallet.isConnected();
+        if (connected) {
+          const account = await wallet.account();
+          setWallet(account.address);
+        }
+      } catch (err) {
+        console.warn("Error checking Petra Wallet Connection", err);
       }
-    }
+    };
+
+    checkconnection();
   }, []);
+   
 
   const disconnectWallet = async () => {
     setWallet("");
-    localStorage.removeItem("wallet");
-    localStorage.removeItem("connectedAt");
+    // localStorage.removeItem("wallet");
+    // localStorage.removeItem("connectedAt");
 
     if (window.aptos?.disconnect) {
       try {
