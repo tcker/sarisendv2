@@ -11,6 +11,8 @@ declare global {
     aptos?: {
       connect(): Promise<{ address: string; publicKey?: string; }>;
       disconnect?(): Promise<void>;
+      isConnected?(): Promise<boolean>;
+      account?(): Promise<{address: string; publicKey: string}>;
       signAndSubmitTransaction?(payload: any): Promise<any>;
     };
   }
@@ -32,11 +34,22 @@ export default function Signup() {
 
     try {
       setIsConnecting(true);
-      const res = await window.aptos.connect();
-      const walletAddress = res.address;
 
-      localStorage.setItem("wallet", walletAddress);
-      localStorage.setItem("connectedAt", Date.now().toString());
+      const alreadyConnected = await window.aptos.isConnected?.();
+      if (!alreadyConnected) {
+        await window.aptos.connect();
+      }
+
+      const account = await window.aptos.connect();
+      if (!account || !account.address) {
+        throw new Error("Wallet account not available");
+      }
+
+      // const res = await window.aptos.connect();
+      // const walletAddress = res.address;
+
+      // localStorage.setItem("wallet", walletAddress);
+      // localStorage.setItem("connectedAt", Date.now().toString());
 
       if (!userType) {
         throw new Error("User type not selected");
@@ -48,7 +61,7 @@ export default function Signup() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          wallet: walletAddress,
+          wallet: account.address,
           userType
         })
       });
@@ -59,7 +72,7 @@ export default function Signup() {
 
       setIsConnected(true);
       setIsConnecting(false);
-      console.log("Connected to Petra Wallet:", walletAddress);
+      console.log("Connected to Petra Wallet:", account.address);
       router.push("/home");
     } catch (err) {
       setIsConnecting(false);
