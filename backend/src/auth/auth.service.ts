@@ -10,7 +10,7 @@ export class AuthService {
   console.log('✅ Received userType:', userType);
     if (userType === 'customer') {
       return this.prisma.user.upsert({
-        where: { wallet },
+        where: { wallet: wallet },
         update: {},
         create: { wallet },
       });
@@ -18,7 +18,7 @@ export class AuthService {
 
     if (userType === 'merchant') {
       return this.prisma.merchant.upsert({
-        where: { wallet },
+        where: { wallet: wallet },
         update: {},
         create: {
           wallet,

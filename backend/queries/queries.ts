@@ -10,7 +10,7 @@ async function main() {
   // ----------------------------- USER ---------------------------------
   const user = await prisma.user.create({
     data: {
-      name: 'Tcker',
+      // name: 'Tcker',
       wallet: '0xabc123456789def',
     },
   });
