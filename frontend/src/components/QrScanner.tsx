@@ -52,7 +52,6 @@ const QrScanner: React.FC<QrScannerProps> = ({ onClose, onScan }) => {
             if (onScan) onScan(raw);
           },
           (errorMessage: string) => {
-            // Handle scan error silently - this fires frequently during normal operation
             console.debug('QR scan error:', errorMessage);
           }
         );

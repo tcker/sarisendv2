@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { ArrowLeft, User } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { usePaymentContext } from '../../hooks/usePaymentContext'
 
 interface TransactionPayload {
   type: string;
@@ -20,6 +21,7 @@ export default function Payment() {
   const [recipient, setRecipient] = useState<string>('')
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { setPaymentData } = usePaymentContext()
 
   const aptToUsdRate = 8.45
   const gasFee = 0.001
@@ -58,18 +60,17 @@ export default function Payment() {
       const tx: TransactionResult = await window.aptos.signAndSubmitTransaction(payload)
       console.log('Transaction sent:', tx)
 
-      // Store transaction data in localStorage for the confirmation page
-      const transactionData = {
+      // Store transaction data in context for the confirmation page
+      setPaymentData({
         amount: currentAmount,
         recipient,
         recipientName: `${recipient.slice(0, 6)}...${recipient.slice(-4)}`,
         gasFee,
         totalCost: currentAmount + gasFee,
-        timestamp: new Date().toISOString(),
+        timestamp: Date.now(),
         transactionHash: tx.hash,
-      }
-      
-      localStorage.setItem('lastTransaction', JSON.stringify(transactionData))
+      })
+
       router.push('/sent-confirm')
     } catch (error) {
       console.error('Transaction failed:', error)
