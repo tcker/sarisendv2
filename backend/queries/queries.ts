@@ -30,7 +30,7 @@ async function main() {
   // ----------------------------- TRANSACTION ---------------------------------
   const transaction = await prisma.transaction.create({
     data: {
-      receiptId: `SARISEND-${Date.now()}`, // simple unique receipt ID
+      receiptId: `SARISEND-${Date.now()}`, 
       amount: 50.0,
       token: 'APT',
       product: 'Iced Coffee',
