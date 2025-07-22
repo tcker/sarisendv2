@@ -4,6 +4,7 @@ import { ArrowLeft, Building, MapPin, Phone, Mail, User, FileText, DollarSign } 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import QrScanner from '@/components/QrScanner'
+import toast from 'react-hot-toast'
 
 // TypeScript interfaces
 interface FormData {
@@ -54,9 +55,18 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
     }))
   }
   const handleNext = async () => {
-    if (currentStep < totalSteps) { 
-      setCurrentStep(currentStep + 1)
-    } else {
+      if (!isStepValid()) {
+        if (currentStep === 2 && !isValidEmail(formData.email)) {
+          toast.error("Please enter a valid email address ending with '.com'");
+        } else {
+          toast.error("Please complete all required fields");
+        }
+        return; // stop further action
+      }
+
+      if (currentStep < totalSteps) {
+        setCurrentStep(currentStep + 1)
+      } else {
       // Submit form and navigate to home
       // console.log('Merchant data:', formData)
       // router.push('/merchant')
@@ -75,11 +85,11 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
 
         const result = await response.json();
         console.log("📤 Payload to backend:", JSON.stringify(formData, null, 2));
-        console.log("Merchant registration successfull", result);
+        toast.success("Registration successful!")
         router.push('/merchant');
       } catch (error) {
         console.error("Error submitting merchant form", error);
-        alert("Something went wrong while submitting your business info.");
+        toast.error("Submission failed. Please try again.")
       }
     }
   };
@@ -424,13 +434,35 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
 
         {/* Navigation Buttons */}
         <div className="mt-8 space-y-4">
-          <button
+          {/* <button
             onClick={handleNext}
             disabled={!isStepValid()}
             className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-black disabled:text-gray-400 font-bold py-4 px-6 rounded-2xl transition-all duration-200"
           >
             {currentStep === totalSteps ? 'Complete Registration' : 'Continue'}
-          </button>
+          </button> */}
+          <button
+              onClick={() => {
+                if (!isStepValid()) {
+                  if (currentStep === 2 && !isValidEmail(formData.email)) {
+                    toast.error("Please enter a valid email address ending with '.com'");
+                  } else {
+                    toast.error("Please complete all required fields");
+                  }
+                  return;
+                }
+
+                handleNext(); // only continue if form is valid
+              }}
+              className={`w-full font-bold py-4 px-6 rounded-2xl transition-all duration-200
+                ${
+                  isStepValid()
+                    ? 'bg-green-500 hover:bg-green-600 text-black'
+                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                }`}
+            >
+              {currentStep === totalSteps ? 'Complete Registration' : 'Continue'}
+            </button>
           <div className="text-center">
             <p className="text-xs text-gray-500">
               Step {currentStep} of {totalSteps} • All fields marked with * are required
