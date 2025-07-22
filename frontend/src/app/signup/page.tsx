@@ -1,90 +1,43 @@
-'use client'
-import React, { useState } from "react";
-import { QrCode, User, Store } from "lucide-react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import petra from "@/assets/petra.png";
-import google from "@/assets/GoogleIcon.webp";
-
-declare global {
-  interface Window {
-    aptos?: {
-      connect(): Promise<{ address: string; publicKey?: string; }>;
-      disconnect?(): Promise<void>;
-      isConnected?(): Promise<boolean>;
-      account?(): Promise<{address: string; publicKey: string}>;
-      signAndSubmitTransaction?(payload: any): Promise<any>;
-    };
-  }
-}
+'use client';
+import React, { useState } from 'react';
+import { QrCode, User, Store } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import petra from '@/assets/petra.png';
+import google from '@/assets/GoogleIcon.webp';
+import { connectWalletHandler } from '@/utils/connectWallet';
 
 type UserType = 'customer' | 'merchant' | null;
+type WalletType = 'petra' | 'pontem' | null;
 
 export default function Signup() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [userType, setUserType] = useState<UserType>(null);
+  const [walletUsed, setWalletUsed] = useState<WalletType>(null);
   const router = useRouter();
 
-  const handlePetraConnect = async () => {
-    if (!window.aptos) {
-      alert("Petra Wallet not found. Please install it.");
+  const connectWallet = (wallet: 'petra' | 'pontem') => {
+    if (!userType) {
+      alert('Please select a user type first');
       return;
     }
 
-    try {
-      setIsConnecting(true);
+    setWalletUsed(wallet);
 
-      const alreadyConnected = await window.aptos.isConnected?.();
-      if (!alreadyConnected) {
-        await window.aptos.connect();
-      }
-
-      const account = await window.aptos.connect();
-      if (!account || !account.address) {
-        throw new Error("Wallet account not available");
-      }
-
-      // const res = await window.aptos.connect();
-      // const walletAddress = res.address;
-
-      // localStorage.setItem("wallet", walletAddress);
-      // localStorage.setItem("connectedAt", Date.now().toString());
-
-      if (!userType) {
-        throw new Error("User type not selected");
-      }
-
-      const response = await fetch("http://localhost:2000/auth/connect-wallet", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          wallet: account.address,
-          userType
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to register wallet with backend");
-      }
-
-      setIsConnected(true);
-      setIsConnecting(false);
-      console.log("Connected to Petra Wallet:", account.address);
-      router.push("/home");
-    } catch (err) {
-      setIsConnecting(false);
-      console.error("Failed to connect to Petra Wallet:", err);
-      alert("Failed to connect to Petra Wallet");
-    }
+    connectWalletHandler({
+      expectedWallet: wallet,
+      userType,
+      setIsConnecting,
+      setIsConnected,
+      router,
+    });
   };
 
   const handleUserTypeSelection = (type: UserType) => {
     setUserType(type);
-    if (type === "merchant") {
-      router.push("/merchant-questionnaire");
+    if (type === 'merchant') {
+      router.push('/merchant-questionnaire');
     }
   };
 
@@ -122,7 +75,7 @@ export default function Signup() {
                   <div className="text-center space-y-4">
                     <h3 className="text-lg font-semibold text-white mb-4">I am a...</h3>
                     <button
-                      onClick={() => handleUserTypeSelection("customer")}
+                      onClick={() => handleUserTypeSelection('customer')}
                       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 px-6 rounded-2xl transition-all duration-200 flex items-center justify-between group"
                     >
                       <div className="flex items-center space-x-3">
@@ -137,7 +90,7 @@ export default function Signup() {
                     </button>
 
                     <button
-                      onClick={() => handleUserTypeSelection("merchant")}
+                      onClick={() => handleUserTypeSelection('merchant')}
                       className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-4 px-6 rounded-2xl transition-all duration-200 flex items-center justify-between group"
                     >
                       <div className="flex items-center space-x-3">
@@ -153,7 +106,7 @@ export default function Signup() {
                   </div>
                 )}
 
-                {userType === "customer" && (
+                {userType === 'customer' && (
                   <>
                     <button
                       onClick={() => setUserType(null)}
@@ -162,23 +115,18 @@ export default function Signup() {
                       ← Back to user type selection
                     </button>
 
+                    {/* PETRA */}
                     <button
-                      onClick={handlePetraConnect}
+                      onClick={() => connectWallet('petra')}
                       disabled={isConnecting}
                       className="w-full bg-green-500 hover:bg-green-600 disabled:bg-green-500/50 text-black font-medium py-4 px-6 rounded-2xl transition-all duration-200 flex items-center justify-between group"
                     >
                       <div className="flex items-center space-x-3">
                         <span className="w-8 h-8 rounded-lg flex items-center justify-center">
-                          <Image 
-                            src={petra} 
-                            alt="Petra Wallet" 
-                            width={32} 
-                            height={32} 
-                            className="rounded-full" 
-                          />
+                          <Image src={petra} alt="Petra Wallet" width={32} height={32} className="rounded-full" />
                         </span>
                         <span className="text-lg">
-                          {isConnecting ? "Connecting..." : "Petra Wallet"}
+                          {isConnecting ? 'Connecting...' : 'Petra Wallet'}
                         </span>
                       </div>
                       {isConnecting ? (
@@ -186,6 +134,29 @@ export default function Signup() {
                       ) : (
                         <div className="w-6 h-6 bg-black/20 rounded-full flex items-center justify-center group-hover:bg-black/30 transition-colors">
                           <span className="text-black text-sm">→</span>
+                        </div>
+                      )}
+                    </button>
+
+                    {/* PONTEM */}
+                    <button
+                      onClick={() => connectWallet('pontem')}
+                      disabled={isConnecting}
+                      className="w-full bg-purple-500 hover:bg-purple-600 disabled:bg-purple-500/50 text-white font-medium py-4 px-6 rounded-2xl transition-all duration-200 flex items-center justify-between group"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="w-8 h-8 rounded-lg flex items-center justify-center bg-white">
+                          <span className="text-xs font-bold text-purple-700">P</span>
+                        </span>
+                        <span className="text-lg">
+                          {isConnecting ? 'Connecting...' : 'Pontem Wallet'}
+                        </span>
+                      </div>
+                      {isConnecting ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                          <span className="text-white text-sm">→</span>
                         </div>
                       )}
                     </button>
@@ -202,12 +173,7 @@ export default function Signup() {
                     <aside className="text-center space-y-3">
                       <button className="w-full bg-white text-black font-medium py-4 px-6 rounded-2xl flex items-center gap-3 group">
                         <span>
-                          <Image 
-                            src={google} 
-                            alt="Google Icon" 
-                            width={32} 
-                            height={32} 
-                          />
+                          <Image src={google} alt="Google Icon" width={32} height={32} />
                         </span>
                         Sign in with Google
                       </button>
@@ -225,7 +191,9 @@ export default function Signup() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-white mb-2">Wallet Connected!</h3>
-                    <p className="text-gray-400 text-sm">Your Petra wallet has been successfully connected to SariSend</p>
+                    <p className="text-gray-400 text-sm">
+                      Your {walletUsed === 'pontem' ? 'Pontem' : 'Petra'} wallet has been successfully connected to SariSend
+                    </p>
                   </div>
                 </div>
               </div>
