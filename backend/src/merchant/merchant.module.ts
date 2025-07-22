@@ -5,8 +5,9 @@ import { MerchantService } from './merchant.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Module({
-  imports: [PrismaService],
+  // imports: [PrismaService],
   controllers: [MerchantController],
-  providers: [MerchantService],
+  providers: [MerchantService, PrismaService],
+  exports: [MerchantService],
 })
 export class MerchantModule {}

@@ -1,14 +1,15 @@
 // src/merchant/merchant.controller.ts
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { MerchantService } from './merchant.service';
 import { CreateMerchantDto } from './dto/create-merchant.dto';
 
-@Controller('merchant')
+@Controller('merchants') 
 export class MerchantController {
   constructor(private readonly merchantService: MerchantService) {}
 
-  @Post('questionnaire')
-  async submitQuestionnaire(@Body() data: CreateMerchantDto) {
-    return this.merchantService.create(data);
+  @Post()
+  async create(@Body() body: CreateMerchantDto) {
+    console.log('Incoming merchant payload:', body);
+    return this.merchantService.create(body); 
   }
 }

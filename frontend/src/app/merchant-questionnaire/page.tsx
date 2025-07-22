@@ -53,15 +53,37 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
       [name]: value
     }))
   }
-  const handleNext = () => {
-    if (currentStep < totalSteps) {
+  const handleNext = async () => {
+    console.log("📤 Payload to backend:", JSON.stringify(formData, null, 2));
+    if (currentStep < totalSteps) { 
       setCurrentStep(currentStep + 1)
     } else {
       // Submit form and navigate to home
-      console.log('Merchant data:', formData)
-      router.push('/merchant')
+      // console.log('Merchant data:', formData)
+      // router.push('/merchant')
+      try {
+        const response = await fetch("http://localhost:2000/merchants", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to register merchant with backend");
+        }
+
+        const result = await response.json();
+        console.log("Merchant registration successfull", result);
+
+        router.push("/merchant");
+      } catch (error) {
+        console.error("Error submitting merchant form", error);
+        alert("Something went wrong while submitting your business info.");
+      }
     }
-  }
+  };
 
   const handleBack = () => {
     if (currentStep > 1) {
