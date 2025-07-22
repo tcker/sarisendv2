@@ -92,12 +92,23 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
     }
   }
 
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
+    return emailRegex.test(email) && email.endsWith('.com');
+    };
+
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
         return formData.businessName && formData.businessType && formData.ownerName
       case 2:
-        return formData.email && formData.phone && formData.address && formData.city && formData.country
+        return (
+          isValidEmail(formData.email) &&
+          formData.phone &&
+          formData.address &&
+          formData.city &&
+          formData.country
+        );
       case 3:
         return formData.businessRegistration && formData.description
       default:
@@ -205,7 +216,8 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
                   className="w-full bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-colors"
                   required
                 />
-              </div>            </div>
+              </div>            
+            </div>
             
             
             {/* <button
@@ -238,7 +250,11 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="business@example.com"
-                  className="w-full bg-gray-800/50 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-colors"
+                  className={`w-full bg-gray-800/50 border rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none transition-colors ${
+                    formData.email && !isValidEmail(formData.email)
+                      ? 'border-red-500 focus:border-red-500'
+                      : 'border-gray-700 focus:border-green-500'
+                  }`}
                   required
                 />
               </div>
