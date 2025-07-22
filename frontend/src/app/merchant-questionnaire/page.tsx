@@ -55,14 +55,20 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
     }))
   }
   const handleNext = async () => {
-      if (!isStepValid()) {
-        if (currentStep === 2 && !isValidEmail(formData.email)) {
-          toast.error("Please enter a valid email address ending with '.com'");
+    if (!isStepValid()) {
+      if (currentStep === 2) {
+        if (!formData.email.includes('@')) {
+          toast.error("Email must contain '@'");
+        } else if (!formData.email.endsWith('.com')) {
+          toast.error("Email must end with '.com'");
         } else {
-          toast.error("Please complete all required fields");
+          toast.error("Please enter a valid email address");
         }
-        return; // stop further action
+      } else {
+        toast.error("Please complete all required fields");
       }
+      return;
+    }
 
       if (currentStep < totalSteps) {
         setCurrentStep(currentStep + 1)
@@ -102,10 +108,10 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
     }
   }
 
-  const isValidEmail = (email: string): boolean => {
-    const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
-    return emailRegex.test(email) && email.endsWith('.com');
-    };
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.trim().toLowerCase().endsWith('.com');
+  };
 
   const isStepValid = () => {
     switch (currentStep) {
@@ -443,16 +449,24 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
           </button> */}
           <button
               onClick={() => {
+                const email = formData.email.trim();
+
                 if (!isStepValid()) {
-                  if (currentStep === 2 && !isValidEmail(formData.email)) {
-                    toast.error("Please enter a valid email address ending with '.com'");
+                  if (currentStep === 2) {
+                    if (!email.includes('@')) {
+                      toast.error("Email must contain '@'");
+                    } else if (!email.endsWith('.com')) {
+                      toast.error("Email must end with '.com'");
+                    } else {
+                      toast.error("Please enter a valid email address");
+                    }
                   } else {
                     toast.error("Please complete all required fields");
                   }
                   return;
                 }
 
-                handleNext(); // only continue if form is valid
+                handleNext(); // only proceed if form is valid
               }}
               className={`w-full font-bold py-4 px-6 rounded-2xl transition-all duration-200
                 ${
