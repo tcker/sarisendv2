@@ -22,7 +22,7 @@ export class AuthService {
         update: {},
         create: {
           wallet,
-          businessName: 'Unnamed Merchant', // placeholder
+          businessName: 'Unnamed Merchant',
         },
       });
     }

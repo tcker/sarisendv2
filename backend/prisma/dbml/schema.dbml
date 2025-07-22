@@ -13,6 +13,18 @@ Table Merchant {
   id String [pk]
   wallet String [unique]
   businessName String [not null]
+  businessType String
+  ownerName String
+  email String
+  phone String
+  address String
+  city String
+  country String
+  businessRegistration String
+  taxId String
+  website String
+  monthlyRevenue String
+  description String
   createdAt DateTime [default: `now()`, not null]
   transactions Transaction [not null]
 }

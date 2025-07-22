@@ -35,11 +35,23 @@ model User {
 }
 
 model Merchant {
-  id           String        @id @default(uuid())
-  wallet       String?       @unique
-  businessName String
-  createdAt    DateTime      @default(now())
-  transactions Transaction[] @relation("MerchantTransactions")
+  id                   String        @id @default(uuid())
+  wallet               String?       @unique
+  businessName         String
+  businessType         String?
+  ownerName            String?
+  email                String?
+  phone                String?
+  address              String?
+  city                 String?
+  country              String?
+  businessRegistration String?
+  taxId                String?
+  website              String?
+  monthlyRevenue       String?
+  description          String?
+  createdAt            DateTime      @default(now())
+  transactions         Transaction[] @relation("MerchantTransactions")
 }
 
 model Transaction {
