@@ -54,7 +54,6 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
     }))
   }
   const handleNext = async () => {
-    console.log("📤 Payload to backend:", JSON.stringify(formData, null, 2));
     if (currentStep < totalSteps) { 
       setCurrentStep(currentStep + 1)
     } else {
@@ -75,9 +74,9 @@ export default function MerchantQuestionnaire() {  const [formData, setFormData]
         }
 
         const result = await response.json();
+        console.log("📤 Payload to backend:", JSON.stringify(formData, null, 2));
         console.log("Merchant registration successfull", result);
-
-        router.push("/merchant");
+        router.push('/merchant');
       } catch (error) {
         console.error("Error submitting merchant form", error);
         alert("Something went wrong while submitting your business info.");
