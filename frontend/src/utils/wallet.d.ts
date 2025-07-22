@@ -1,4 +1,3 @@
-// types/wallet.d.ts
 export {};
 
 declare global {

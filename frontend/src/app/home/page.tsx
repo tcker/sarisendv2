@@ -12,6 +12,8 @@ import Token from "@/components/token";
 import Ads from "@/components/ads";
 import Sidebar from "@/components/Sidebar";
 import WalletBalance from "@/components/WalletBalance";
+import { getWalletProvider } from "@/utils/getWalletProvider";
+import toast from 'react-hot-toast';
 
 export default function Home() {
   const [wallet, setWallet] = useState("");
@@ -22,56 +24,79 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // const storedWallet = localStorage.getItem("wallet");
-    // const connectedAt = localStorage.getItem("connectedAt");
-    const checkconnection = async () => {
-      const wallet = window.aptos;
-      if (!wallet || !wallet.isConnected || !wallet.account) return;
+    const checkConnection = async () => {
+      const provider = getWalletProvider();
+      if (!provider) return;
 
       try {
-        const connected = await wallet.isConnected();
-        if (connected) {
-          const account = await wallet.account();
-          setWallet(account.address);
-        }
+        const connected = await provider.isConnected();
+        if (!connected) return;
+
+        // Try fetching account — this fails if locked
+        const account = await provider.account();
+        setWallet(account.address);
       } catch (err) {
-        console.warn("Error checking Petra Wallet Connection", err);
+        console.warn("Wallet connected but locked or error occurred", err);
+        setWallet(""); // clear wallet if locked
       }
     };
 
-    checkconnection();
+    checkConnection();
   }, []);
+
    
 
   const disconnectWallet = async () => {
     setWallet("");
-    // localStorage.removeItem("wallet");
-    // localStorage.removeItem("connectedAt");
+    localStorage.removeItem("wallet");
+    localStorage.removeItem("connectedAt"); 
 
     if (window.aptos?.disconnect) {
       try {
-        await window.aptos.disconnect(); 
+        await window.aptos.disconnect();
       } catch (err) {
-        console.warn("Petra disconnect not supported:", err);
+        console.warn("Wallet disconnect error:", err);
       }
     }
 
     router.push("/");
   };
 
-  const connectWallet = async () => {
-    if (!window.aptos) return alert("Petra Wallet not found");
+
+const connectWallet = async () => {
+  const provider = getWalletProvider();
+  if (!provider) {
+    toast.error("No supported wallet found (Petra or Pontem)");
+    return;
+  }
 
     try {
-      const res = await window.aptos.connect();
-      setWallet(res.address);
-      localStorage.setItem("wallet", res.address);
-      localStorage.setItem("connectedAt", Date.now().toString());
+      const isAlreadyConnected = await provider.isConnected?.();
+      if (!isAlreadyConnected) {
+        await provider.connect();
+      }
 
+      const account = await provider.account?.();
+
+      console.log("🔍 Wallet account:", account); // debug log
+
+      if (!account || !account.address) {
+        throw new Error("Wallet account not available");
+      }
+
+      setWallet(account.address);
+      // localStorage.setItem("wallet", account.address);
+      // localStorage.setItem("connectedAt", Date.now().toString());
+      toast.success("Wallet connected successfully");
     } catch (e) {
-      alert("Failed to connect Petra Wallet");
+      console.error(e);
+      toast.error(`Failed to connect to ${provider.name || "wallet"}`);
     }
   };
+
+  
+
+
 
   return (
     <main className="min-h-screen mx-4 p-4 relative overflow-hidden">

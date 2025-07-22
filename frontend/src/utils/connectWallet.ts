@@ -48,17 +48,57 @@ export async function connectWalletHandler({
       try {
         await wallet.connect();
       } catch (connectErr) {
-        console.error('User closed wallet popup or connection failed:', connectErr);
+        console.error('❌ Wallet popup closed or connection failed:', connectErr);
         toast.error('Wallet connection was cancelled.');
         setIsConnecting(false);
         return;
       }
     }
 
-    const account = await wallet.account?.();
+    // Try up to 3 times to fetch account
+    let account = null;
+    for (let i = 0; i < 3; i++) {
+      try {
+        account = typeof wallet.account === 'function'
+          ? await wallet.account()
+          : wallet.account;
+
+        const address = typeof account === 'string' ? account : account?.address;
+        if (address) {
+          account = { address };
+          break;
+        }
+      } catch (e) {
+        console.warn(`Retrying account fetch... (${i + 1})`);
+      }
+
+      await new Promise((res) => setTimeout(res, 300));
+    }
+
     if (!account?.address) {
+      console.error('🧨 Failed to get account after retries:', account);
       throw new Error('Wallet account not available');
     }
+
+    // 🔐 Require signature to prove wallet ownership (important for Pontem)
+    try {
+      const challenge = `Verify wallet ownership: ${Date.now()}`;
+      const signed = await wallet.signMessage?.({
+        message: challenge,
+        nonce: 'sarisend-login',
+      });
+
+      if (!signed?.signature) {
+        throw new Error('User did not sign the message');
+      }
+    } catch (signErr) {
+      console.error('❌ Wallet must be unlocked or user rejected signature:', signErr);
+      toast.error('Please unlock your wallet and approve the signature');
+      setIsConnecting(false);
+      return;
+    }
+
+
 
     const response = await fetch('http://localhost:2000/auth/connect-wallet', {
       method: 'POST',
@@ -74,10 +114,10 @@ export async function connectWalletHandler({
     }
 
     setIsConnected(true);
-    console.log(`Connected to ${expectedWallet} wallet:`, account.address);
+    console.log(`✅ Connected to ${expectedWallet} wallet:`, account.address);
     router.push('/home');
   } catch (err) {
-    console.error(`Failed to connect to ${expectedWallet} wallet:`, err);
+    console.error(`❌ Failed to connect to ${expectedWallet} wallet:`, err);
     toast.error(`Failed to connect to ${expectedWallet} wallet`);
   } finally {
     setIsConnecting(false);
