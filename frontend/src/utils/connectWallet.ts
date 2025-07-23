@@ -124,7 +124,11 @@ export async function connectWalletHandler({
 
     setIsConnected(true);
     console.log(`✅ Authenticated ${expectedWallet} wallet:`, account.address);
-    router.push('/home');
+
+    setTimeout(() => {
+      router.replace('/home');
+      // window.location.reload(); 
+    }, 200);
   } catch (err) {
     console.error(`❌ Failed to connect to ${expectedWallet} wallet:`, err);
     toast.error(`Failed to connect to ${expectedWallet} wallet`);

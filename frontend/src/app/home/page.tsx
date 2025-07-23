@@ -23,34 +23,59 @@ export default function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const connect = async () => {
-      const savedWallet = localStorage.getItem("walletProvider") as 'petra' | 'pontem' | undefined;
-      const provider = await getWalletProvider(savedWallet);
-      const isAlreadyConnected = await provider.isConnected?.();
-      if (!isAlreadyConnected) {
-        await provider.connect();
-      }
+    useEffect(() => {
+      const waitForAptos = (): Promise<void> => {
+        return new Promise((resolve) => {
+          if (window.aptos) return resolve();
 
-      const account = await provider.account?.();
-      if (account?.address) {
-        localStorage.setItem("walletAddress", account.address);
-        localStorage.setItem("walletProvider", provider.name); 
-        router.push("/Home");
-      }
-    };
+          const interval = setInterval(() => {
+            if (window.aptos) {
+              clearInterval(interval);
+              resolve();
+            }
+          }, 100); // Check every 100ms
+        });
+      };
 
-    connect();
-  }, []);
+      const autoConnect = async () => {
+        const savedWallet = localStorage.getItem("walletProvider") as "petra" | "pontem" | null;
+        const savedAddress = localStorage.getItem("walletAddress");
 
+        if (!savedWallet || !savedAddress) return;
 
+        await waitForAptos(); 
 
-   
+        const provider = getWalletProvider(savedWallet);
+        if (!provider) return;
+
+        try {
+          const isConnected = await provider.isConnected?.();
+          if (!isConnected) {
+            await provider.connect(); 
+          }
+
+          const account = await provider.account?.();
+          if (account?.address?.toLowerCase() !== savedAddress.toLowerCase()) {
+            toast.error("Wallet mismatch. Please use the same wallet you signed up with.");
+            return;
+          }
+
+          setWallet(account.address);
+          console.log("✅ Auto-connected wallet:", account.address);
+        } catch (err) {
+          console.error("Auto-connect error:", err);
+        }
+      };
+
+      connectWallet();
+    }, []);
 
   const disconnectWallet = async () => {
     setWallet("");
-    localStorage.removeItem("wallet");
-    localStorage.removeItem("connectedAt"); 
+    localStorage.removeItem("walletProvider");
+    localStorage.removeItem("walletAddress");
+    localStorage.removeItem("connectedAt");
+
 
     if (window.aptos?.disconnect) {
       try {
@@ -64,43 +89,61 @@ export default function Home() {
   };
 
 
-    const connectWallet = async () => {
-      const preferredWallet = localStorage.getItem("walletProvider") as "petra" | "pontem" | null;
-      const provider = getWalletProvider(preferredWallet || undefined);
+const waitForAptos = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (window.aptos) return resolve();
 
-      if (!provider) {
-        toast.error("No supported wallet found (Petra or Pontem)");
-        return;
+    const interval = setInterval(() => {
+      if (window.aptos) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 100);
+  });
+};
+
+    const connectWallet = async () => {
+      await waitForAptos(); 
+
+      let savedWallet = (localStorage.getItem("walletProvider") ?? undefined) as "petra" | "pontem" | undefined;
+      const savedAddress = localStorage.getItem("walletAddress");
+
+      if (window.aptos?.isPetra) {
+        savedWallet = "petra";
+        localStorage.setItem("walletProvider", "petra");
       }
 
+      const provider = getWalletProvider(savedWallet);
+      if (!provider) return;
+
       try {
-        const isAlreadyConnected = await provider.isConnected?.();
-        if (!isAlreadyConnected) {
+        const isConnected = await provider.isConnected?.();
+        if (!isConnected) {
           await provider.connect();
         }
 
         const account = await provider.account?.();
+        const currentAddress = account?.address;
 
-        console.log("📦 Account data:", account);
-
-        let address = "";
-
-        if (typeof account === "string") {
-          address = account;
-        } else if (typeof account === "object" && account?.address) {
-          address = account.address;
+        if (!currentAddress) {
+          throw new Error("No address from provider");
         }
 
-        if (!address) {
-          throw new Error("Wallet address not available");
+        if (savedAddress && currentAddress.toLowerCase() !== savedAddress.toLowerCase()) {
+          toast.error("Wallet mismatch. Please use the same wallet you signed up with.");
+          return;
         }
 
-        console.log("✅ Connected:", address);
-        setWallet(address);
+        console.log("✅ Connected:", currentAddress);
+        setWallet(currentAddress);
 
-        // Save used wallet type for next time
-        localStorage.setItem("walletProvider", provider.name);
-        localStorage.setItem("walletAddress", address);
+        const walletName = provider.name?.toLowerCase();
+        if (walletName && !savedWallet) {
+          localStorage.setItem("walletProvider", walletName);
+        }
+
+        localStorage.setItem("walletAddress", currentAddress);
+        localStorage.setItem("connectedAt", new Date().toISOString());
 
         toast.success("Wallet connected successfully");
       } catch (e) {
@@ -108,6 +151,9 @@ export default function Home() {
         toast.error(`Failed to connect to ${provider.name || "wallet"}`);
       }
     };
+
+
+
 
   
 

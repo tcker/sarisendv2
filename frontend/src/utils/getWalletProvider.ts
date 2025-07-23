@@ -1,24 +1,35 @@
 export function getWalletProvider(preferred?: "petra" | "pontem") {
   if (typeof window === "undefined") return null;
 
-  if (preferred) {
-    const provider = (window as any)[preferred];
-    if (provider && provider.connect) {
-      provider.name = preferred;
-      return provider;
+  const aptos = (window as any).aptos;
+  const pontem = (window as any).pontem;
+
+  if (preferred === "petra") {
+    if (aptos?.name?.toLowerCase() === "petra" || aptos?.isPetra) {
+      aptos.name = "petra";
+      return aptos;
     }
-    return null; // Do not fallback to other wallets
+    return null; // ❗ don't fallback to Pontem here
   }
 
-  // // Fallback search only if no preferred specified
-  // const APTOS_WALLETS = ["petra", "pontem"];
-  // for (const name of APTOS_WALLETS) {
-  //   const provider = (window as any)[name];
-  //   if (provider && provider.connect) {
-  //     provider.name = name;
-  //     return provider;
-  //   }
-  // }
+  if (preferred === "pontem") {
+    if (pontem) {
+      pontem.name = "pontem";
+      return pontem;
+    }
+    return null; // ❗ don't fallback to Petra
+  }
 
-  // return null;
+  // If no preference given, return what’s available
+  if (pontem) {
+    pontem.name = "pontem";
+    return pontem;
+  }
+
+  if (aptos) {
+    aptos.name = "petra";
+    return aptos;
+  }
+
+  return null;
 }
