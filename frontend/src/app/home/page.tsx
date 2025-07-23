@@ -24,25 +24,26 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const checkConnection = async () => {
-      const provider = getWalletProvider();
-      if (!provider) return;
+    const connect = async () => {
+      const savedWallet = localStorage.getItem("walletProvider") as 'petra' | 'pontem' | undefined;
+      const provider = await getWalletProvider(savedWallet);
+      const isAlreadyConnected = await provider.isConnected?.();
+      if (!isAlreadyConnected) {
+        await provider.connect();
+      }
 
-      try {
-        const connected = await provider.isConnected();
-        if (!connected) return;
-
-        // Try fetching account — this fails if locked
-        const account = await provider.account();
-        setWallet(account.address);
-      } catch (err) {
-        console.warn("Wallet connected but locked or error occurred", err);
-        setWallet(""); // clear wallet if locked
+      const account = await provider.account?.();
+      if (account?.address) {
+        localStorage.setItem("walletAddress", account.address);
+        localStorage.setItem("walletProvider", provider.name); 
+        router.push("/Home");
       }
     };
 
-    checkConnection();
+    connect();
   }, []);
+
+
 
    
 
@@ -63,36 +64,50 @@ export default function Home() {
   };
 
 
-const connectWallet = async () => {
-  const provider = getWalletProvider();
-  if (!provider) {
-    toast.error("No supported wallet found (Petra or Pontem)");
-    return;
-  }
+    const connectWallet = async () => {
+      const preferredWallet = localStorage.getItem("walletProvider") as "petra" | "pontem" | null;
+      const provider = getWalletProvider(preferredWallet || undefined);
 
-    try {
-      const isAlreadyConnected = await provider.isConnected?.();
-      if (!isAlreadyConnected) {
-        await provider.connect();
+      if (!provider) {
+        toast.error("No supported wallet found (Petra or Pontem)");
+        return;
       }
 
-      const account = await provider.account?.();
+      try {
+        const isAlreadyConnected = await provider.isConnected?.();
+        if (!isAlreadyConnected) {
+          await provider.connect();
+        }
 
-      console.log("🔍 Wallet account:", account); // debug log
+        const account = await provider.account?.();
 
-      if (!account || !account.address) {
-        throw new Error("Wallet account not available");
+        console.log("📦 Account data:", account);
+
+        let address = "";
+
+        if (typeof account === "string") {
+          address = account;
+        } else if (typeof account === "object" && account?.address) {
+          address = account.address;
+        }
+
+        if (!address) {
+          throw new Error("Wallet address not available");
+        }
+
+        console.log("✅ Connected:", address);
+        setWallet(address);
+
+        // Save used wallet type for next time
+        localStorage.setItem("walletProvider", provider.name);
+        localStorage.setItem("walletAddress", address);
+
+        toast.success("Wallet connected successfully");
+      } catch (e) {
+        console.error(e);
+        toast.error(`Failed to connect to ${provider.name || "wallet"}`);
       }
-
-      setWallet(account.address);
-      // localStorage.setItem("wallet", account.address);
-      // localStorage.setItem("connectedAt", Date.now().toString());
-      toast.success("Wallet connected successfully");
-    } catch (e) {
-      console.error(e);
-      toast.error(`Failed to connect to ${provider.name || "wallet"}`);
-    }
-  };
+    };
 
   
 

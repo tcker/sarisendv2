@@ -45,13 +45,17 @@ export async function connectWalletHandler({
 
     const alreadyConnected = await wallet.isConnected?.();
 
-    if (alreadyConnected && typeof wallet.disconnect === 'function') {
+    if (!alreadyConnected) {
       try {
-        await wallet.disconnect();
-      } catch (e) {
-        console.warn('Disconnect failed or not supported:', e);
+        await wallet.connect();
+      } catch (connectErr) {
+        console.error('❌ Wallet popup closed or connection failed:', connectErr);
+        toast.error('Wallet connection was cancelled.');
+        setIsConnecting(false);
+        return;
       }
     }
+
 
     try {
       await wallet.connect();
