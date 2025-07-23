@@ -44,18 +44,24 @@ export async function connectWalletHandler({
     setIsConnecting(true);
 
     const alreadyConnected = await wallet.isConnected?.();
-    if (!alreadyConnected) {
+
+    if (alreadyConnected && typeof wallet.disconnect === 'function') {
       try {
-        await wallet.connect();
-      } catch (connectErr) {
-        console.error('❌ Wallet popup closed or connection failed:', connectErr);
-        toast.error('Wallet connection was cancelled.');
-        setIsConnecting(false);
-        return;
+        await wallet.disconnect();
+      } catch (e) {
+        console.warn('Disconnect failed or not supported:', e);
       }
     }
 
-    // Try up to 3 times to fetch account
+    try {
+      await wallet.connect();
+    } catch (connectErr) {
+      console.error('❌ Wallet popup closed or connection failed:', connectErr);
+      toast.error('Wallet connection was cancelled.');
+      setIsConnecting(false);
+      return;
+    }
+
     let account = null;
     for (let i = 0; i < 3; i++) {
       try {
@@ -80,25 +86,22 @@ export async function connectWalletHandler({
       throw new Error('Wallet account not available');
     }
 
-    // 🔐 Require signature to prove wallet ownership (important for Pontem)
+    const message = `SariSend Login:\n${account.address}\n${Date.now()}`;
+
+    let signature = '';
     try {
-      const challenge = `Verify wallet ownership: ${Date.now()}`;
-      const signed = await wallet.signMessage?.({
-        message: challenge,
-        nonce: 'sarisend-login',
+      const signed = await wallet.signMessage({
+        message,
+        nonce: Math.floor(Math.random() * 1e6).toString(), // Optional extra randomness
       });
 
-      if (!signed?.signature) {
-        throw new Error('User did not sign the message');
-      }
+      signature = signed?.signature;
     } catch (signErr) {
-      console.error('❌ Wallet must be unlocked or user rejected signature:', signErr);
-      toast.error('Please unlock your wallet and approve the signature');
+      console.error('❌ Message signing failed:', signErr);
+      toast.error('Wallet signature was cancelled.');
       setIsConnecting(false);
       return;
     }
-
-
 
     const response = await fetch('http://localhost:2000/auth/connect-wallet', {
       method: 'POST',
@@ -106,15 +109,17 @@ export async function connectWalletHandler({
       body: JSON.stringify({
         wallet: account.address,
         userType,
+        message,
+        signature,
       }),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to register wallet with backend');
+      throw new Error('Failed to authenticate wallet with backend');
     }
 
     setIsConnected(true);
-    console.log(`✅ Connected to ${expectedWallet} wallet:`, account.address);
+    console.log(`✅ Authenticated ${expectedWallet} wallet:`, account.address);
     router.push('/home');
   } catch (err) {
     console.error(`❌ Failed to connect to ${expectedWallet} wallet:`, err);
